@@ -102,4 +102,87 @@ $ cfdisk /dev/sda
 
 and you will be brought to a partition wizard.
 
+Select `gpt` from the list (if asked) and then partition the hard drive. I like to have 4 seperate partions for an install:
+
+1. Boot partition, with 512MB  
+2. Swap partition, which can very. An old rule of thumb is to use 2x the amount of RAM you have, so I chose 1GB  
+3. Root partition, which can also very. I chose 3GB, but it is up to you. Depending on what you plan on using the vm for, you might want to go to as much as 1/3 of the disk space that you're using.
+4. Home patition, which is just the leftover space.
+
+Make sure that you select the proper filesystem types: Your boot partition should be Microsoft basic data, your swap should be Linux swap, and your home and root partitions should be Linux filesystem. You should have something like this when you're done:
+![Screenshot](./images/screenshot06.png)
+Don't forget to hit Write before you quit. Now if you type
+```
+$ lsblk
+```
+
+you should see 
+
+![Screenshot](./images/screenshot07.png)
+### Mounting the filesystem
+Let's mount the filesystem next. Type out everything below, and we'll meet on the other side and see how things went.
+```
+$ mkfs.vfat -F32 /dev/sda1
+$ mkswap /dev/sda2
+$ mkfs.ext4 /dev/sda3
+$ mkfs.ext4 /dev/sda4
+$ swapon /dev/sda2
+```
+
+We just set the file system to fat32 for the boot partition, swap on the swap partition, and ext4 for the root and home partitions. After that, we told the computer to use the swap partition as swap.
+
+Now we can actually mount them:
+```
+$ mount /dev/sda3 /mnt
+$ mkdir /mnt/boot
+$ mkdir /mnt/home
+$ mount /dev/sda1 /mnt/boot
+$ mount /dev/sda4 /mnt/home
+```
+
+If everything went according to plan, you have the skeleton of your Arch install all set up. Now we can get into the actual nuts and bolts of the installation, and the hard part is over with. If we run our trusty `$lsblk`, we should see
+![Screenshot](./images/screenshot08.png)
+
+### Finding a mirror
+This is where the actual installation part comes into play. First, we need to edit our mirror to find the best one to download from. Point your browser to the [Mirror Status](https://www.archlinux.org/mirrors/status/) page and select a mirror you want to use there. I like to go down to the part of the window that says *Sucessfully Syncing Mirrors* and then sort the list by highest mirror score. Then I select the highest scoring mirror that is near me. Your mileage may vary.
+
+![Screenshot](./images/screenshot09.png)
+I am going to use a mirror in the United States, [clarkson.edu](http://mirror.clarkson.edu/archlinux/). To use this mirror, you need to edit `/etc/pacman.d/mirrorlist` so that the mirror is at the type. type
+```
+$ nano /etc/pacman.d/mirrorlist
+```
+and then add `Server = http://mirror.clarkson.edu/archlinux/$repo/os/$arch` to the top of the list, above `## China`.
+
+Hit `Ctrl + x` to save, follow the prompts and quit. Now we can finally install Arch!
+
+### Pacstrap
+Now that we've edited the mirror list, we can install Arch. Type
+```
+$ pacstrap -i /mnt base base-devel
+```
+and hit enter. You will be prompted to make some choices, just hit enter to accept the defaults and then hit y. The files will begin to download and install, so sit back, grab something to drink, do whatever. It might take a little while.
+
+![Screenshot](./images/screenshot10.png)
+
+And all the heavy lifting is done! Let's generate our filesystem table
+
+```
+$ genfstab /mnt >> /mnt/etc/fstab
+```
+
+Now that we've generated the fstab, let's take a look at it
+
+```
+$ nano /mnt/etc/fstab
+```
+
+If it looks similar to this, you're good:
+![Screenshot](./images/screenshot11.png)
+### arch-chroot
+Now we need to set the OS up to be self-sufficient. First, we need to arch-chroot into the filesystem.
+
+```
+$ arch-chroot /mnt
+```
+
 # References
