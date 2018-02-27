@@ -226,4 +226,69 @@ and edit it so that it looks like this:
 ::1		    localhost
 127.0.1.1	archVM.localdomain	archVM
 ```
+
+Now we need to have systemd start the network connection on start up. To do this, type
+```
+$ systemctl enable dhcpcd.service
+```
+
+Let's add a password to our root account by typing
+```
+$ passwd
+```
+
+and entering a password when prompted.
+
+Finally, we need to install a *bootloader*.
+
+### Installing a bootloader
+I used to use a mac, and as a result I'm partial to rEFInd as a bootloader. To install this, we have a couple steps.
+First, type
+
+```
+$ pacman -S refind-efi
+```
+and accept the prompts when they come up.
+
+Once this installs, we can type
+```
+refind-install
+```
+and we should get the output below:
+![Screenshot](./images/screenshot13.png)  
+
+As a final step, we need to edit `/boot/refind_linux.conf` because when the install script populated it, it was populated with the values for the .iso and not our boot disc. To edit that, you need to change the file
+```
+$ nano /boot/refind_linux.conf
+```
+
+Basically, where you see the part that says something like `ro root=UUID-...-6d73ae6b5332`, it needs to be placed on the line `"boot with standard options"` and the other two need to be deleted. Also, replace the `ro` with `rw`. When all is said and done, you should have something that looks like this:
+
+![Screenshot](./images/screenshot14.png)  
+save your changes, you're in the home stretch!
+ 
+### Finishing touches
+Now that we're done, we can exit `arch-chroot` and finish our install.
+```
+$ exit
+```
+You'll be kicked out of chroot jail, and ready to leave the installer limbo. Type
+```
+$ umount -R /mnt
+```
+You shouldn't have any errors at this point. If you do, there's a chance you left the `/root` directory when you were in chroot.
+To fix this you can just `$arch-chroot /mnt` back in, type `$ cd`, and then `$ exit` and try again.
+At this point, you're finished with installing. Type
+```
+$ reboot
+```
+and cross your fingers; with any luck you'll see 
+![Screenshot](./images/screenshot15.png)  
+
+Push enter and rEFInd will load into the OS. You'll be greeted with this screen:
+
+![Screenshot](./images/screenshot16.png)  
+
+Congratulations! You just installed Arch Linux in a VM!
+
 # References
