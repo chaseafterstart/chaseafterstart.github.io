@@ -177,12 +177,53 @@ $ nano /mnt/etc/fstab
 ```
 
 If it looks similar to this, you're good:
-![Screenshot](./images/screenshot11.png)
+![Screenshot](./images/screenshot11.png)  
+
 ### arch-chroot
+
 Now we need to set the OS up to be self-sufficient. First, we need to arch-chroot into the filesystem.
 
 ```
 $ arch-chroot /mnt
 ```
 
+First things first, let's select a timezone and set the system clock:
+```
+$ ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+$ hwclock --systohc.
+```
+The first line sets a *symbolic link* between the time zone and your local time. You can use a different zone if you're in a different area using the command `tzselect`.
+
+Now, edit the file `/etc/locale-gen` to uncomment your language. I'm going to use `en_US.UTF-8 UTF-8`, but you can use whatever you would normally use. Do this by typing
+```
+$ nano /etc/locale.gen
+```
+and then deleting the # before the one(s) you want to use. 
+![Screenshot](./images/screenshot12.png)  
+Save and exit, and then type
+```
+$ locale-gen
+```
+to finalize the change.
+
+Next, set the language variable in `/etc/locale.conf` by typing
+```
+$ echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+```
+We're going to do something similar for our hostname. I'm choosing `archVM` for my hostname, so I'll type
+```
+$ echo "archVM" >> /etc/hostname
+```
+
+and for hosts we'll type
+```
+$ nano /etc/hosts
+```
+
+and edit it so that it looks like this:
+```
+127.0.0.1	localhost
+::1		    localhost
+127.0.1.1	archVM.localdomain	archVM
+```
 # References
